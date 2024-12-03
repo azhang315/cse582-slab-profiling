@@ -49,26 +49,43 @@ for size in specific_sizes:
     # Filter outliers
     filtered_data = filter_outliers(size_data, "Latency (µs)")
 
-    # Overlayed CDF Plot
+    # Overlayed CDF Plot with Error Bands
     plt.figure()
     ax = plt.gca()
 
     # Track metrics
     kernel_means = {}
     sample_counts = {}
+    colors = itertools.cycle(plt.cm.tab10.colors)  # Reset color cycle
+
     for kernel, group in filtered_data.groupby("Kernel"):
         # Calculate metrics
         mean_latency = group["Latency (µs)"].mean()  # Already in µs
+        std_latency = group["Latency (µs)"].std()    # Standard deviation
         kernel_means[kernel] = mean_latency
         sample_counts[kernel] = len(group)
 
-        # Plot CDF
+        # Calculate sorted latencies and CDF
         latency_sorted = group["Latency (µs)"].sort_values()
         cdf = latency_sorted.rank(method="average", pct=True)
+
+        # Plot main CDF line
+        color = next(colors)
         plt.plot(
             latency_sorted, cdf,
-            label=f"{kernel} (Mean: {1e-6 * mean_latency:.2f} µs, Samples: {len(group)})",
-            linestyle="-", alpha=0.8, color=next(colors)
+            label=f"{kernel} (Mean: {mean_latency:.2f} µs, Samples: {len(group)})",
+            linestyle="-", alpha=0.8, color=color
+        )
+
+        # Add error band using standard deviation
+        lower_bound = latency_sorted - std_latency
+        upper_bound = latency_sorted + std_latency
+        plt.fill_between(
+            latency_sorted, cdf, cdf,
+            where=(lower_bound >= 0),
+            color=color,
+            alpha=0.2,
+            label=f"{kernel} ±1 SD"
         )
 
     # Calculate differences
@@ -81,7 +98,7 @@ for size in specific_sizes:
 
         # Annotate percentage difference
         ax.annotate(
-            f"Avg Diff: {1e-6 * avg_diff:.2f} µs\n% Diff: {pct_diff:.2f}%\n{higher_latency_kernel} higher latency",
+            f"Avg Diff: {avg_diff:.2f} µs\n% Diff: {pct_diff:.2f}%\n{higher_latency_kernel} higher latency",
             xy=(0.7, 0.2),  # Adjusted location for visibility
             xycoords="axes fraction",
             fontsize=10,
@@ -96,7 +113,7 @@ for size in specific_sizes:
 
     # Adjust legend font size and location
     plt.legend(title="Kernel", fontsize=10, loc="upper left", title_fontsize=11)
-    plt.savefig(f"{output_dir}/overlay_latency_cdf_{size}B.png")
+    plt.savefig(f"{output_dir}/overlay_latency_cdf_{size}B_with_error.png")
     plt.close()
 
 

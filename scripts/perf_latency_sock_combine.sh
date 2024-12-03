@@ -10,7 +10,7 @@ mkdir -p "$DATA_DIR"
 
 echo 3 > /proc/sys/vm/drop_caches # Drop Caches - Cold Start
 
-sudo perf record -e kmem:kmalloc,kmem:kfree -a -o "$DATA_DIR/perf.data" -- stress-ng --sock 20 --timeout 1s
+sudo perf record -e kmem:kmalloc,kmem:kfree -a -o "$DATA_DIR/perf.data" -- stress-ng --sock 10 --timeout 60s
 
 sudo chown $USER:$USER "$DATA_DIR/perf.data" # Fix ownership of the perf.data file
 

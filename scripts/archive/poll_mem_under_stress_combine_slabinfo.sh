@@ -6,19 +6,27 @@ if [[ $(/usr/bin/id -u) -ne 0 ]]; then
     exit 1
 fi
 
+# Infer kernel type using uname
+KERNEL_TYPE=$(uname -r)
+
 # Define directory structure
-BASE_DIR="./data/overhead"
-NORMAL_DIR="$BASE_DIR/normal"
-STRESS_DIR="$BASE_DIR/stress"
+BASE_DIR="./data/stress-overhead"
+KERNEL_DIR="$BASE_DIR/$KERNEL_TYPE"
+NORMAL_DIR="$KERNEL_DIR/normal"
+STRESS_DIR="$KERNEL_DIR/stress"
 
 # Create necessary directories
 mkdir -p "$NORMAL_DIR"
 mkdir -p "$STRESS_DIR"
 
+# Parameters for data collection
+NORMAL_DURATION=5  # 60 seconds
+NORMAL_INTERVAL=0.5  # Every 0.5 seconds
+STRESS_DURATION=60  # Match stress-ng timeout
+STRESS_INTERVAL=0.25  # Every 0.5 seconds
+
 # Collect slabinfo during normal execution
 echo "Capturing slabinfo during normal execution..."
-NORMAL_DURATION=10  # 60 seconds
-NORMAL_INTERVAL=0.5  # Every 0.5 seconds
 END_TIME=$((SECONDS + NORMAL_DURATION))
 while [ $SECONDS -lt $END_TIME ]; do
     TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
@@ -28,10 +36,7 @@ done
 
 # Collect slabinfo during stress execution
 echo "Starting stress-ng workload and capturing slabinfo..."
-STRESS_DURATION=10  # Match stress-ng timeout
-STRESS_INTERVAL=0.5  # Every 0.5 seconds
-# stress-ng --vm 10 --vm-bytes 50% --timeout ${STRESS_DURATION}s &  # Adjust workload as needed
-stress-ng --sock 50 --timeout ${STRESS_DURATION}s &
+stress-ng --sock 100 --timeout ${STRESS_DURATION}s &
 
 STRESS_PID=$!  # Capture the PID of stress-ng
 
@@ -45,6 +50,7 @@ done
 # Wait for stress-ng to complete
 wait $STRESS_PID
 
+# Completion message
 echo "Slabinfo monitoring completed."
 echo "Data saved in:"
 echo "  - Normal: $NORMAL_DIR"
