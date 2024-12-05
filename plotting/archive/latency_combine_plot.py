@@ -61,7 +61,7 @@ for size in specific_sizes:
     for kernel, group in filtered_data.groupby("Kernel"):
         # Calculate metrics
         mean_latency = group["Latency (µs)"].mean()  # Already in µs
-        std_latency = group["Latency (µs)"].std()    # Standard deviation
+        std_latency = group["Latency (µs)"].std()    # Standard deviation        
         kernel_means[kernel] = mean_latency
         sample_counts[kernel] = len(group)
 

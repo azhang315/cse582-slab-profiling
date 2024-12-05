@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [[ $(/usr/bin/id -u) -ne 0 ]]; then
-    echo "Not running as root"
-    exit 1
-fi
+# if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+#     echo "Not running as root"
+#     exit 1
+# fi
 
 # Set up directories
 KERNEL_VERSION=$(uname -r)  # Get the current kernel version

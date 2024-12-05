@@ -15,7 +15,7 @@ echo "Dropping caches for a cold start..."
 echo 3 > /proc/sys/vm/drop_caches
 
 # Run multiple perf recordings
-NUM_RUNS=30
+NUM_RUNS=10
 for i in $(seq 1 $NUM_RUNS); do
     echo "Starting perf run $i/$NUM_RUNS..."
 
