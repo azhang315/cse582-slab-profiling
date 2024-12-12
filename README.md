@@ -1,12 +1,13 @@
 contains:
 * collection scripts: `scripts`
 * plotting scripts: `plotting`
-* selection of graphs
+
+omitted:
+* perf data
+* intermediate preprocessed checkpoints
 
 usage:
 * easiest to mount to VMs individually to test collection, etc.
-
-
 
 ```
 Mount

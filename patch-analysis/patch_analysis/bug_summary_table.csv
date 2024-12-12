@@ -1,0 +1,6 @@
+Bug Type,Count,Rust Language Feature
+Memory Leak,626,Ownership & Borrowing
+Null Pointer,427,Option Type
+Use-After-Free,391,Ownership & Lifetimes
+Race Condition,114,Thread Safety & Borrowing
+Buffer Overflow,61,Bounds Checking

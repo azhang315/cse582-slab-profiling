@@ -207,6 +207,10 @@ def plot_double_bar_graph_with_errors(kernel_data, categories, output_path):
 
     print(f"Double bar graph with error bars saved at {output_path}")
 
+def determine_top_caches(data, top_x=25):
+    """Determine the top X most frequent caches in the data."""
+    cache_counts = data["Cache Name"].value_counts()
+    return cache_counts.nlargest(top_x).index.tolist()
 
 def main():
     input_dir_base = "./data/stress-overhead/"
@@ -218,14 +222,15 @@ def main():
     # Load data for each kernel
     kernel_dirs = [d for d in os.listdir(input_dir_base) if os.path.isdir(os.path.join(input_dir_base, d))]
     kernel_data = {}
-    for kernel in kernel_dirs:
+    for i, kernel_dir in enumerate(kernel_dirs, start=1):
         stress_dir = os.path.join(input_dir_base, kernel, "stress")
-        kernel_data[kernel] = aggregate_slabtop(stress_dir)
+        kernel_data[f"Kernel {i}"] = aggregate_slabtop(stress_dir)
 
-    # Categories to include
-    slab_related_categories = [
-        "mqueue_inode_cache", "request_queue", "v9fs_inode_cache", "net_namespace", "proc_inode_cache"
-    ]
+    # # Categories to include
+    # slab_related_categories = [
+    #     "mqueue_inode_cache", "request_queue", "v9fs_inode_cache", "net_namespace", "proc_inode_cache"
+    # ]
+    slab_related_categories = determine_top_caches(kernel_data, top_x=50)
 
     # Double bar graph
     plot_double_bar_graph_with_errors(

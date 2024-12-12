@@ -1,3 +1,6 @@
 data
 env
 checkpoints*
+shared_data
+*/env
+*graphs

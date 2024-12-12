@@ -6,11 +6,12 @@ if [[ $(/usr/bin/id -u) -ne 0 ]]; then
 fi
 
 # Set up directories
+TYPE="sock"
 KERNEL_VERSION=$(uname -r)
 DATA_DIR="/data/latency/${KERNEL_VERSION}"
-RAW_DATA_DIR="$DATA_DIR/raw"
-LOCAL_RAW_DATA_DIR="/data/tmp_latency/${KERNEL_VERSION}/raw"  # Local VM temp dir
-MOUNT_DATA_DIR="./data/latency/${KERNEL_VERSION}/raw"        # Mount directory for final data storage
+RAW_DATA_DIR="$DATA_DIR/$TYPE/raw"
+LOCAL_RAW_DATA_DIR="/data/tmp_latency/${KERNEL_VERSION}/$TYPE/raw"  # Local VM temp dir
+MOUNT_DATA_DIR="./data/latency/${KERNEL_VERSION}/$TYPE/kmem_cache_alloc/raw"        # Mount directory for final data storage
 
 mkdir -p "$RAW_DATA_DIR"
 mkdir -p "$LOCAL_RAW_DATA_DIR"
@@ -19,7 +20,7 @@ mkdir -p "$MOUNT_DATA_DIR"
 echo "Dropping caches for a cold start..."
 echo 3 > /proc/sys/vm/drop_caches
 
-NUM_RUNS=50
+NUM_RUNS=1
 
 for i in $(seq 1 $NUM_RUNS); do
     LOCAL_PERF_DATA_FILE="$LOCAL_RAW_DATA_DIR/perf_${i}.data"
@@ -27,7 +28,17 @@ for i in $(seq 1 $NUM_RUNS); do
     MOUNT_PERF_SCRIPT_FILE="$MOUNT_DATA_DIR/perf_script_output_${i}.txt"
 
     echo "Starting perf run $i/$NUM_RUNS..."
-    sudo perf record -e kmem:kmalloc,kmem:kfree -a -o "$LOCAL_PERF_DATA_FILE" -- stress-ng --sock 3 --timeout 1s
+    # sudo perf record -e kmem:kmalloc,kmem:kfree -a -o "$LOCAL_PERF_DATA_FILE" -- stress-ng --sock 3 --timeout 1s
+    sudo perf record -e \
+    probe:kmem_cache_alloc_noprof,\
+probe:kmem_cache_alloc_noprof__return,\
+probe:kmem_cache_free,\
+probe:kmem_cache_free__return,\
+kmem:kmalloc,\
+kmem:kmalloc__return,\
+kmem:kfree,\
+kmem:kfree__return \
+     -a -o "$LOCAL_PERF_DATA_FILE" -- stress-ng --sock 3 --timeout 1s
 
     if [[ ! -s "$LOCAL_PERF_DATA_FILE" ]]; then
         echo "perf.data is empty for run $i. Skipping script output generation."
